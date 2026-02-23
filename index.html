@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Card Study Timer</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0eb;
+    --surface: #fefcf9;
+    --accent: #c17f5a;
+    --accent2: #7a9e87;
+    --text: #3a2e28;
+    --muted: #9a8a7e;
+    --card-back: #e8ddd5;
+    --shadow: rgba(100, 70, 50, 0.12);
+    --red: #c0443a;
+    --black: #2a2420;
+    --disabled: #d0c8c0;
+    --disabled-text: #b0a89e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+    background-image: radial-gradient(ellipse at 20% 10%, #e8ddd5 0%, transparent 50%),
+                      radial-gradient(ellipse at 80% 90%, #dde8dd 0%, transparent 50%);
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    text-align: center;
+    color: var(--text);
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .subtitle { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 28px; font-weight: 300; }
+
+  /* TIMER */
+  .timer-section {
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 28px 24px 24px;
+    text-align: center;
+    box-shadow: 0 4px 24px var(--shadow);
+    max-width: 480px;
+    margin: 0 auto 28px;
+  }
+  .current-card-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .drawn-card {
+    width: 64px;
+    height: 90px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 2px solid #e0d4cc;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: 0 2px 12px var(--shadow);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  .drawn-card.red { color: var(--red); }
+  .drawn-card.black { color: var(--black); }
+  .drawn-card .suit-small { font-size: 0.75rem; }
+  .drawn-card.empty { color: var(--muted); font-size: 0.8rem; font-family: 'Lato', sans-serif; font-weight: 300; background: var(--card-back); }
+
+  .timer-display {
+    font-family: 'Playfair Display', serif;
+    font-size: 4.5rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 8px;
+    transition: color 0.3s;
+  }
+  .timer-display.running { color: var(--accent2); }
+  .timer-display.finished { color: var(--red); }
+  .timer-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+
+  .timer-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    padding: 10px 22px;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary { background: var(--accent); color: white; box-shadow: 0 3px 12px rgba(193,127,90,0.35); }
+  .btn-primary:hover { background: #a86d48; box-shadow: 0 4px 18px rgba(193,127,90,0.45); }
+  .btn-secondary { background: var(--accent2); color: white; box-shadow: 0 3px 12px rgba(122,158,135,0.35); }
+  .btn-secondary:hover { background: #6a8e75; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1.5px solid #d8cec6; }
+  .btn-ghost:hover { background: #f0ebe5; color: var(--text); }
+  .btn:disabled { background: var(--disabled); color: var(--disabled-text); cursor: not-allowed; box-shadow: none; }
+
+  /* Progress bar */
+  .progress-bar-wrap {
+    height: 6px;
+    background: #ece5de;
+    border-radius: 99px;
+    margin: 16px 0 0;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 99px;
+    width: 100%;
+    transition: width 1s linear;
+  }
+
+  /* DECK SECTION */
+  .deck-section {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .deck-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding: 0 4px;
+  }
+  .deck-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--text);
+  }
+  .deck-count {
+    font-size: 0.85rem;
+    color: var(--muted);
+    background: var(--surface);
+    padding: 4px 12px;
+    border-radius: 99px;
+    border: 1px solid #e0d4cc;
+  }
+
+  .suits-container { display: flex; flex-direction: column; gap: 12px; }
+  .suit-row {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 14px 14px 10px;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+  .suit-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .suit-label .suit-icon { font-size: 1rem; }
+  .suit-label.red .suit-icon { color: var(--red); }
+  .suit-label.black .suit-icon { color: var(--black); }
+  .cards-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .mini-card {
+    width: 40px;
+    height: 54px;
+    border-radius: 6px;
+    border: 1.5px solid #e0d4cc;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    user-select: none;
+    position: relative;
+  }
+  .mini-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow); }
+  .mini-card.red { color: var(--red); }
+  .mini-card.black { color: var(--black); }
+  .mini-card.disabled {
+    background: var(--card-back);
+    color: var(--disabled-text);
+    border-color: var(--disabled);
+    text-decoration: line-through;
+    opacity: 0.5;
+    transform: none;
+    cursor: pointer;
+  }
+  .mini-card .mini-suit { font-size: 0.55rem; }
+  .mini-card.active-card {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent), 0 4px 14px rgba(193,127,90,0.3);
+  }
+
+  /* Reset button */
+  .reset-wrap { text-align: center; margin-top: 16px; }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  .pop { animation: pop 0.3s ease; }
+
+  @keyframes pulse-red {
+    0%, 100% { color: var(--red); }
+    50% { color: #e87070; }
+  }
+  .timer-display.pulsing { animation: pulse-red 0.6s ease infinite; }
+</style>
+</head>
+<body>
+
+<h1>Study by the Deck</h1>
+<p class="subtitle">Draw a card · study for its time · conquer the deck</p>
+
+<!-- TIMER -->
+<div class="timer-section">
+  <div class="current-card-display">
+    <div class="drawn-card empty" id="drawnCard">
+      <span>draw</span>
+      <span>a card</span>
+    </div>
+    <div>
+      <div class="timer-display" id="timerDisplay">00:00</div>
+      <div class="timer-label" id="timerLabel">Draw a card to start</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar"></div></div>
+    </div>
+  </div>
+  <div class="timer-controls">
+    <button class="btn btn-primary" id="drawBtn">🃏 Draw Card</button>
+    <button class="btn btn-secondary" id="startStopBtn" disabled>▶ Start</button>
+    <button class="btn btn-ghost" id="resetTimerBtn" disabled>↺ Reset</button>
+  </div>
+</div>
+
+<!-- DECK -->
+<div class="deck-section">
+  <div class="deck-header">
+    <span class="deck-title">Your Deck</span>
+    <span class="deck-count" id="deckCount">54 cards remaining</span>
+  </div>
+  <div class="suits-container" id="suitsContainer"></div>
+  <div class="reset-wrap">
+    <button class="btn btn-ghost" id="resetDeckBtn">Reset Full Deck</button>
+  </div>
+</div>
+
+<script>
+const SUITS = [
+  { name: 'Hearts', symbol: '♥', color: 'red' },
+  { name: 'Diamonds', symbol: '♦', color: 'red' },
+  { name: 'Clubs', symbol: '♣', color: 'black' },
+  { name: 'Spades', symbol: '♠', color: 'black' },
+];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const JOKERS = ['Joker-Red', 'Joker-Black'];
+
+function cardValue(rank) {
+  if (rank === 'A') return 1;
+  if (['J','Q','K'].includes(rank)) return 10;
+  return parseInt(rank);
+}
+
+function studyMinutes(rank) {
+  if (rank === 'Joker') return 120;
+  return cardValue(rank) * 10;
+}
+
+function isJoker(key) {
+  return key === 'Joker-Red' || key === 'Joker-Black';
+}
+
+// State
+let deck = {}; // key: "rank-suit" => true (available) or false (removed)
+let currentCard = null;
+let timerInterval = null;
+let timeLeft = 0;
+let totalTime = 0;
+let timerRunning = false;
+
+const STORAGE_KEY = 'studyDeck_v1';
+const CURRENT_CARD_KEY = 'studyDeck_currentCard';
+
+function saveDeck() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(deck));
+    if (currentCard) {
+      localStorage.setItem(CURRENT_CARD_KEY, JSON.stringify(currentCard));
+    } else {
+      localStorage.removeItem(CURRENT_CARD_KEY);
+    }
+  } catch(e) {}
+}
+
+function loadDeck() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      deck = JSON.parse(saved);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function initDeck() {
+  deck = {};
+  SUITS.forEach(s => RANKS.forEach(r => { deck[`${r}-${s.name}`] = true; }));
+  JOKERS.forEach(j => { deck[j] = true; });
+}
+
+function availableCards() {
+  return Object.keys(deck).filter(k => deck[k]);
+}
+
+function formatTime(secs) {
+  const m = String(Math.floor(secs / 60)).padStart(2, '0');
+  const s = String(secs % 60).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function updateDeckCount() {
+  const n = availableCards().length;
+  document.getElementById('deckCount').textContent = `${n} card${n !== 1 ? 's' : ''} remaining`;
+}
+
+function renderDeck() {
+  const container = document.getElementById('suitsContainer');
+  container.innerHTML = '';
+  SUITS.forEach(suit => {
+    const row = document.createElement('div');
+    row.className = 'suit-row';
+    const label = document.createElement('div');
+    label.className = `suit-label ${suit.color}`;
+    label.innerHTML = `<span class="suit-icon">${suit.symbol}</span> ${suit.name}`;
+    row.appendChild(label);
+    const grid = document.createElement('div');
+    grid.className = 'cards-grid';
+    RANKS.forEach(rank => {
+      const key = `${rank}-${suit.name}`;
+      const card = document.createElement('div');
+      card.className = `mini-card ${suit.color}${!deck[key] ? ' disabled' : ''}`;
+      if (currentCard && currentCard.key === key && deck[key]) card.classList.add('active-card');
+      card.innerHTML = `<span>${rank}</span><span class="mini-suit">${suit.symbol}</span>`;
+      card.title = `${rank} of ${suit.name} — ${studyMinutes(rank)} min`;
+      card.addEventListener('click', () => toggleCard(key));
+      grid.appendChild(card);
+    });
+    row.appendChild(grid);
+    container.appendChild(row);
+  });
+
+  // Joker row
+  const jokerRow = document.createElement('div');
+  jokerRow.className = 'suit-row';
+  const jokerLabel = document.createElement('div');
+  jokerLabel.className = 'suit-label black';
+  jokerLabel.innerHTML = `<span class="suit-icon">🃏</span> Jokers <span style="margin-left:6px;font-size:0.7rem;color:var(--accent)">(2 hrs each)</span>`;
+  jokerRow.appendChild(jokerLabel);
+  const jokerGrid = document.createElement('div');
+  jokerGrid.className = 'cards-grid';
+  JOKERS.forEach(key => {
+    const isRed = key === 'Joker-Red';
+    const card = document.createElement('div');
+    card.className = `mini-card ${isRed ? 'red' : 'black'}${!deck[key] ? ' disabled' : ''}`;
+    if (currentCard && currentCard.key === key && deck[key]) card.classList.add('active-card');
+    card.innerHTML = `<span>🃏</span><span class="mini-suit" style="font-size:0.6rem">${isRed ? 'Red' : 'Blk'}</span>`;
+    card.title = `${isRed ? 'Red' : 'Black'} Joker — 120 min (2 hrs)`;
+    card.addEventListener('click', () => toggleCard(key));
+    jokerGrid.appendChild(card);
+  });
+  jokerRow.appendChild(jokerGrid);
+  container.appendChild(jokerRow);
+
+  updateDeckCount();
+}
+
+function toggleCard(key) {
+  // Don't toggle currently active card
+  if (currentCard && currentCard.key === key) return;
+  deck[key] = !deck[key];
+  saveDeck();
+  renderDeck();
+}
+
+function drawCard() {
+  const avail = availableCards();
+  if (avail.length === 0) {
+    alert('No cards left in the deck! Reset to play again.');
+    return;
+  }
+  // Stop current timer
+  stopTimer(false);
+
+  const key = avail[Math.floor(Math.random() * avail.length)];
+  deck[key] = false;
+
+  let rank, suit, cardLabel;
+  if (isJoker(key)) {
+    rank = 'Joker';
+    const isRed = key === 'Joker-Red';
+    suit = { name: isRed ? 'Red' : 'Black', symbol: '🃏', color: isRed ? 'red' : 'black' };
+    cardLabel = `${isRed ? 'Red' : 'Black'} Joker`;
+  } else {
+    const parts = key.split('-');
+    rank = parts[0];
+    const suitName = parts.slice(1).join('-');
+    suit = SUITS.find(s => s.name === suitName);
+    cardLabel = `${rank} of ${suit.name}`;
+  }
+  currentCard = { key, rank, suit };
+
+  // Update drawn card display
+  const el = document.getElementById('drawnCard');
+  el.className = `drawn-card ${suit.color}`;
+  el.innerHTML = `<span>${rank === 'Joker' ? '🃏' : rank}</span><span class="mini-suit">${rank === 'Joker' ? suit.name : suit.symbol}</span>`;
+  el.classList.add('pop');
+  setTimeout(() => el.classList.remove('pop'), 400);
+
+  // Set timer
+  const mins = studyMinutes(rank);
+  totalTime = mins * 60;
+  timeLeft = totalTime;
+  document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+  document.getElementById('timerDisplay').className = 'timer-display';
+  document.getElementById('timerLabel').textContent = `${cardLabel} · ${mins} minutes`;
+  document.getElementById('progressBar').style.width = '100%';
+
+  document.getElementById('startStopBtn').disabled = false;
+  document.getElementById('startStopBtn').textContent = '▶ Start';
+  document.getElementById('resetTimerBtn').disabled = false;
+
+  saveDeck();
+  renderDeck();
+}
+
+function startTimer() {
+  if (timeLeft <= 0) return;
+  timerRunning = true;
+  document.getElementById('startStopBtn').textContent = '⏸ Pause';
+  document.getElementById('timerDisplay').className = 'timer-display running';
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+    document.getElementById('progressBar').style.width = `${(timeLeft / totalTime) * 100}%`;
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      document.getElementById('timerDisplay').className = 'timer-display pulsing';
+      document.getElementById('timerLabel').textContent = '✅ Time\'s up! Great work!';
+      document.getElementById('startStopBtn').textContent = '▶ Start';
+      document.getElementById('startStopBtn').disabled = true;
+      playAlarm();
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('startStopBtn').textContent = '▶ Start';
+  document.getElementById('timerDisplay').className = 'timer-display';
+}
+
+function stopTimer(resetDisplay = true) {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  if (resetDisplay) {
+    document.getElementById('startStopBtn').textContent = '▶ Start';
+    document.getElementById('timerDisplay').className = 'timer-display';
+  }
+}
+
+function resetTimer() {
+  stopTimer();
+  if (currentCard) {
+    const mins = studyMinutes(currentCard.rank);
+    totalTime = mins * 60;
+    timeLeft = totalTime;
+    document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+    document.getElementById('timerDisplay').className = 'timer-display';
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('startStopBtn').textContent = '▶ Start';
+    document.getElementById('startStopBtn').disabled = false;
+  }
+}
+
+function playAlarm() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = [523, 659, 784, 1047, 784, 659, 523, 659, 784, 1047];
+    let time = ctx.currentTime;
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, time);
+      gain.gain.setValueAtTime(0, time);
+      gain.gain.linearRampToValueAtTime(0.4, time + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+      osc.start(time);
+      osc.stop(time + 0.3);
+      time += 0.22;
+    });
+    // Extra buzz
+    for (let r = 0; r < 3; r++) {
+      const osc2 = ctx.createOscillator();
+      const g2 = ctx.createGain();
+      osc2.connect(g2); g2.connect(ctx.destination);
+      osc2.type = 'square';
+      osc2.frequency.value = 440 + r * 80;
+      g2.gain.setValueAtTime(0.15, time);
+      g2.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
+      osc2.start(time); osc2.stop(time + 0.5);
+      time += 0.55;
+    }
+  } catch(e) { console.log('Audio error', e); }
+}
+
+// Event listeners
+document.getElementById('drawBtn').addEventListener('click', drawCard);
+document.getElementById('startStopBtn').addEventListener('click', () => {
+  if (timerRunning) pauseTimer();
+  else startTimer();
+});
+document.getElementById('resetTimerBtn').addEventListener('click', resetTimer);
+document.getElementById('resetDeckBtn').addEventListener('click', () => {
+  if (confirm('Reset the full deck? This will restore all 54 cards.')) {
+    stopTimer();
+    currentCard = null;
+    initDeck();
+    try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(CURRENT_CARD_KEY); } catch(e) {}
+    const el = document.getElementById('drawnCard');
+    el.className = 'drawn-card empty';
+    el.innerHTML = '<span>draw</span><span>a card</span>';
+    document.getElementById('timerDisplay').textContent = '00:00';
+    document.getElementById('timerDisplay').className = 'timer-display';
+    document.getElementById('timerLabel').textContent = 'Draw a card to start';
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('startStopBtn').disabled = true;
+    document.getElementById('resetTimerBtn').disabled = true;
+    renderDeck();
+  }
+});
+
+// Init — restore saved state or start fresh
+const restored = loadDeck();
+if (!restored) initDeck();
+
+// Restore current card if one was active
+try {
+  const savedCard = localStorage.getItem(CURRENT_CARD_KEY);
+  if (savedCard) {
+    currentCard = JSON.parse(savedCard);
+    const { rank, suit, key: cKey } = currentCard;
+    const el = document.getElementById('drawnCard');
+    el.className = `drawn-card ${suit.color}`;
+    const jokerRestored = isJoker(cKey);
+    el.innerHTML = `<span>${jokerRestored ? '🃏' : rank}</span><span class="mini-suit">${jokerRestored ? suit.name : suit.symbol}</span>`;
+    const mins = studyMinutes(rank);
+    totalTime = mins * 60;
+    timeLeft = totalTime;
+    document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+    const cardLabel = jokerRestored ? `${suit.name} Joker` : `${rank} of ${suit.name}`;
+    document.getElementById('timerLabel').textContent = `${cardLabel} · ${mins} minutes`;
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('startStopBtn').disabled = false;
+    document.getElementById('resetTimerBtn').disabled = false;
+  }
+} catch(e) {}
+
+renderDeck();
+</script>
+</body>
+</html>
