@@ -16,6 +16,7 @@
     --text: #3a2e28;
     --muted: #9a8a7e;
     --card-back: #e8ddd5;
+    --border: #e0d4cc;
     --shadow: rgba(100, 70, 50, 0.12);
     --red: #c0443a;
     --black: #2a2420;
@@ -25,6 +26,49 @@
     --pomo-short: #7a9e87;
     --pomo-long: #5a7fa0;
   }
+
+  /* ===== THEME DEFINITIONS ===== */
+body[data-theme="warm"] {
+  --bg: #f5f0eb;
+  --surface: #fefcf9;
+  --accent: #c17f5a;
+  --accent2: #7a9e87;
+  --text: #3a2e28;
+  --muted: #9a8a7e;
+  --card-back: #e8ddd5;
+  --shadow: rgba(100,70,50,0.12);
+}
+body[data-theme="dark"] {
+  --bg: #1a1612;
+  --surface: #635446;
+  --accent: #d4956a;
+  --accent2: #8fb39c;
+  --text: #f2eae4;
+  --muted: #b8a99e;
+  --card-back: #796857;
+  --shadow: rgba(0,0,0,0.4);
+}
+body[data-theme="midnight"] {
+  --bg: #0d0f1a;
+  --surface: #30365c;
+  --accent: #7c6fff;
+  --accent2: #4db6ff;
+  --text: #e8ebff;
+  --muted: #9aa3d4;
+  --card-back: #545b85;
+  --shadow: rgba(0,0,0,0.5);
+}
+body[data-theme="forest"] {
+  --bg: #0f1a12;
+  --surface: #33533e;
+  --accent: #5dbd6e;
+  --accent2: #8ad4a0;
+  --text: #e6f4ea;
+  --muted: #a3c4ad;
+  --card-back: #508b65;
+  --shadow: rgba(0,0,0,0.45);
+}
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Lato', sans-serif;
@@ -37,6 +81,57 @@
   }
   h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; text-align: center; color: var(--text); margin-bottom: 4px; letter-spacing: -0.5px; }
   .subtitle { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; font-weight: 300; }
+
+  /* THEME SWITCHER */
+  .theme-switcher {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 50;
+  display: flex;
+  gap: 6px;
+  background: var(--surface);
+  border-radius: 50px;
+  padding: 6px;
+  box-shadow: 0 2px 16px var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.theme-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: block;
+  padding: 0;
+}
+
+.theme-btn:hover {
+  transform: scale(1.15);
+}
+
+.theme-btn.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.theme-btn[data-theme="warm"] {
+  background: linear-gradient(135deg, #f5f0eb, #c17f5a);
+}
+
+.theme-btn[data-theme="dark"] {
+  background: linear-gradient(135deg, #1a1612, #d4956a);
+}
+
+.theme-btn[data-theme="midnight"] {
+  background: linear-gradient(135deg, #0d0f1a, #7c6fff);
+}
+
+.theme-btn[data-theme="forest"] {
+  background: linear-gradient(135deg, #0f1a12, #5dbd6e);
+}
 
   /* TABS */
   .tabs-nav { max-width: 600px; margin: 0 auto 20px; display: flex; gap: 0; background: var(--surface); border-radius: 14px; padding: 5px; box-shadow: 0 2px 12px var(--shadow); }
@@ -160,6 +255,12 @@
   @keyframes pulse-red { 0%, 100% { color: var(--red); } 50% { color: #e87070; } }
   .timer-display.pulsing { animation: pulse-red 0.6s ease infinite; }
 
+  /* FOOTER */
+  .site-footer { max-width: 600px; margin: 40px auto 0; padding: 20px 16px; text-align: center; border-top: 1px solid var(--border); }
+  .site-footer p { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.5px;  }
+  .site-footer a { color: var(--accent); text-decoration: none; font-weight: 700; transition: opacity 0.2s; }
+  .site-footer a:hover { opacity: 0.75; }
+
   /* ── POMODORO ── */
   .pomo-container { max-width: 480px; margin: 0 auto; }
   .pomo-mode-tabs { display: flex; gap: 0; background: var(--surface); border-radius: 14px; padding: 5px; box-shadow: 0 2px 12px var(--shadow); margin-bottom: 20px; }
@@ -235,6 +336,14 @@
 <div class="tabs-nav">
   <button class="tab-btn active" data-tab="deck">🃏 Deck Study</button>
   <button class="tab-btn" data-tab="pomo">🍅 Pomodoro</button>
+</div>
+
+<!-- THEME SWITCHER -->
+<div class="theme-switcher">
+  <button class="theme-btn active" data-theme="warm"></button>
+  <button class="theme-btn" data-theme="dark"></button>
+  <button class="theme-btn" data-theme="midnight"></button>
+  <button class="theme-btn" data-theme="forest"></button>
 </div>
 
 <!-- ══ CARD STUDY TAB ══════════════════════════════════════════════════════ -->
@@ -844,6 +953,33 @@ modalBackdrop.addEventListener('click', function(e) { if (e.target===modalBackdr
   }
   pomoSetMode('work', false); loadPomoStats(); updatePomoStats();
 })();
+
+/* ───── THEME SWITCHER ───── */
+const THEME_KEY = 'studyDeck_theme';
+const themeButtons = document.querySelectorAll('.theme-btn');
+
+function applyTheme(theme) {
+  document.body.setAttribute('data-theme', theme);
+  themeButtons.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === theme);
+  });
+  try { localStorage.setItem(THEME_KEY, theme); } catch(e) {}
+}
+
+themeButtons.forEach(btn => {
+  btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+});
+
+(function initTheme(){
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch(e){}
+  applyTheme(saved || 'warm');
+})();
 </script>
+
+<footer class="site-footer">
+  <p>Made with ♠ by <a href="https://huskyong.github.io/MyPortfolio/" target="_blank" rel="noopener">Harsh Desai</a></p>
+</footer>
+
 </body>
 </html>
