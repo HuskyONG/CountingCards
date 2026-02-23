@@ -3,203 +3,1048 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Study by the Deck</title>
+<title>Card Study Timer</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-
 <style>
-:root {
-  --bg:#f5f0eb; --surface:#fefcf9; --accent:#c17f5a; --accent2:#7a9e87;
-  --text:#3a2e28; --muted:#9a8a7e; --shadow:rgba(100,70,50,0.12);
-  --red:#c0443a; --black:#2a2420; --disabled:#d0c8c0; --disabled-text:#b0a89e;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Lato;background:var(--bg);color:var(--text);padding:24px 16px 40px}
+  :root {
+    --bg: #f5f0eb;
+    --surface: #fefcf9;
+    --accent: #c17f5a;
+    --accent2: #7a9e87;
+    --text: #3a2e28;
+    --muted: #9a8a7e;
+    --card-back: #e8ddd5;
+    --shadow: rgba(100, 70, 50, 0.12);
+    --red: #c0443a;
+    --black: #2a2420;
+    --disabled: #d0c8c0;
+    --disabled-text: #b0a89e;
+    --pomo-work: #c17f5a;
+    --pomo-short: #7a9e87;
+    --pomo-long: #5a7fa0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+    background-image: radial-gradient(ellipse at 20% 10%, #e8ddd5 0%, transparent 50%),
+                      radial-gradient(ellipse at 80% 90%, #dde8dd 0%, transparent 50%);
+  }
+  h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; text-align: center; color: var(--text); margin-bottom: 4px; letter-spacing: -0.5px; }
+  .subtitle { text-align: center; color: var(--muted); font-size: 0.9rem; margin-bottom: 20px; font-weight: 300; }
 
-h1{font-family:"Playfair Display";text-align:center;margin-bottom:4px}
-.subtitle{text-align:center;color:var(--muted);margin-bottom:20px;font-size:.9rem}
+  /* TABS */
+  .tabs-nav { max-width: 600px; margin: 0 auto 20px; display: flex; gap: 0; background: var(--surface); border-radius: 14px; padding: 5px; box-shadow: 0 2px 12px var(--shadow); }
+  .tab-btn {
+    flex: 1; padding: 10px 0; border: none; background: transparent;
+    font-family: 'Lato', sans-serif; font-size: 0.88rem; font-weight: 700;
+    color: var(--muted); border-radius: 10px; cursor: pointer; transition: all 0.22s;
+    letter-spacing: 0.5px;
+  }
+  .tab-btn.active { background: var(--accent); color: white; box-shadow: 0 2px 10px rgba(193,127,90,0.35); }
+  .tab-btn:not(.active):hover { color: var(--accent); background: #f5ede6; }
 
-.tab-bar{display:flex;justify-content:center;gap:10px;margin-bottom:20px}
-.tab{padding:8px 18px;border-radius:50px;border:1px solid #ddd;cursor:pointer;font-weight:700}
-.tab.active{background:var(--accent);color:white;border-color:var(--accent)}
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
 
-.section{background:var(--surface);border-radius:16px;padding:14px;margin:0 auto 20px;max-width:600px;box-shadow:0 2px 12px var(--shadow)}
+  /* USER SWITCHER */
+  .user-section { max-width: 600px; margin: 0 auto 16px; background: var(--surface); border-radius: 16px; padding: 14px 16px; box-shadow: 0 2px 12px var(--shadow); }
+  .user-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .user-section-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
+  .users-list { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .user-chip {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px 6px 10px; border-radius: 50px;
+    border: 1.5px solid #e0d4cc; background: var(--bg);
+    cursor: pointer; transition: all 0.2s; font-size: 0.85rem; font-weight: 700;
+    color: var(--muted); user-select: none;
+  }
+  .user-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .user-chip.active { background: var(--accent); border-color: var(--accent); color: white; box-shadow: 0 2px 10px rgba(193,127,90,0.35); }
+  .user-chip .user-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
+    background: var(--card-back); color: var(--muted);
+  }
+  .user-chip.active .user-avatar { background: rgba(255,255,255,0.25); color: white; }
+  .user-chip .delete-user { margin-left: 2px; opacity: 0; transition: opacity 0.15s; font-size: 0.75rem; cursor: pointer; color: rgba(255,255,255,0.65); }
+  .user-chip.active:hover .delete-user { opacity: 1; }
+  .user-chip:not(.active) .delete-user { color: var(--muted); }
+  .user-chip:not(.active):hover .delete-user { opacity: 1; }
 
-.timer-display{font-family:"Playfair Display";font-size:3.5rem;text-align:center;margin:10px 0}
-.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  /* MULTIPLIER SELECTOR */
+  .multiplier-section { max-width: 600px; margin: 0 auto 20px; background: var(--surface); border-radius: 16px; padding: 14px 16px; box-shadow: 0 2px 12px var(--shadow); }
+  .multiplier-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .multiplier-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
+  .multiplier-value-display { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--accent); font-weight: 700; }
+  .multiplier-row { display: flex; align-items: center; gap: 12px; }
+  .multiplier-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+  .mult-chip {
+    padding: 5px 13px; border-radius: 50px; border: 1.5px solid #e0d4cc;
+    background: var(--bg); font-size: 0.8rem; font-weight: 700;
+    color: var(--muted); cursor: pointer; transition: all 0.18s;
+  }
+  .mult-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .mult-chip.active { background: var(--accent); border-color: var(--accent); color: white; box-shadow: 0 2px 8px rgba(193,127,90,0.3); }
+  .multiplier-custom { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .multiplier-custom label { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+  .multiplier-custom input {
+    width: 62px; padding: 5px 10px; border-radius: 50px; border: 1.5px solid #d8cec6;
+    font-family: 'Lato', sans-serif; font-size: 0.88rem; background: var(--bg);
+    color: var(--text); outline: none; text-align: center; transition: border-color 0.2s;
+  }
+  .multiplier-custom input:focus { border-color: var(--accent); }
+  .multiplier-desc { margin-top: 8px; font-size: 0.78rem; color: var(--muted); }
 
-.btn{padding:10px 18px;border:none;border-radius:50px;font-weight:700;cursor:pointer}
-.btn-primary{background:var(--accent);color:white}
-.btn-secondary{background:var(--accent2);color:white}
-.btn-ghost{background:transparent;border:1px solid #ddd;color:var(--muted)}
+  /* TIMER */
+  .timer-section { background: var(--surface); border-radius: 20px; padding: 28px 24px 24px; text-align: center; box-shadow: 0 4px 24px var(--shadow); max-width: 480px; margin: 0 auto 28px; }
+  .current-user-banner { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); margin-bottom: 14px; font-weight: 700; }
+  .current-card-display { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 18px; }
+  .drawn-card {
+    width: 64px; height: 90px; border-radius: 8px; background: var(--surface); border: 2px solid #e0d4cc;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700;
+    box-shadow: 0 2px 12px var(--shadow); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); position: relative;
+  }
+  .drawn-card.red { color: var(--red); }
+  .drawn-card.black { color: var(--black); }
+  .drawn-card.empty { color: var(--muted); font-size: 0.8rem; font-family: 'Lato', sans-serif; font-weight: 300; background: var(--card-back); }
+  .timer-display { font-family: 'Playfair Display', serif; font-size: 4.5rem; font-weight: 700; letter-spacing: 2px; color: var(--text); line-height: 1; margin-bottom: 8px; transition: color 0.3s; }
+  .timer-display.running { color: var(--accent2); }
+  .timer-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; }
+  .timer-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 
-.hidden{display:none}
-input{padding:8px 12px;border-radius:50px;border:1px solid #ddd}
+  .btn { padding: 10px 22px; border: none; border-radius: 50px; font-family: 'Lato', sans-serif; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
+  .btn:active { transform: scale(0.96); }
+  .btn-primary { background: var(--accent); color: white; box-shadow: 0 3px 12px rgba(193,127,90,0.35); }
+  .btn-primary:hover { background: #a86d48; }
+  .btn-secondary { background: var(--accent2); color: white; box-shadow: 0 3px 12px rgba(122,158,135,0.35); }
+  .btn-secondary:hover { background: #6a8e75; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1.5px solid #d8cec6; }
+  .btn-ghost:hover { background: #f0ebe5; color: var(--text); }
+  .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+  .btn:disabled { background: var(--disabled); color: var(--disabled-text); cursor: not-allowed; box-shadow: none; }
+
+  .progress-bar-wrap { height: 6px; background: #ece5de; border-radius: 99px; margin: 16px 0 0; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 99px; width: 100%; transition: width 1s linear; }
+
+  /* DECK */
+  .deck-section { max-width: 600px; margin: 0 auto; }
+  .deck-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding: 0 4px; }
+  .deck-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--text); }
+  .deck-count { font-size: 0.85rem; color: var(--muted); background: var(--surface); padding: 4px 12px; border-radius: 99px; border: 1px solid #e0d4cc; }
+  .suits-container { display: flex; flex-direction: column; gap: 12px; }
+  .suit-row { background: var(--surface); border-radius: 14px; padding: 14px 14px 10px; box-shadow: 0 2px 12px var(--shadow); }
+  .suit-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .suit-label .suit-icon { font-size: 1rem; }
+  .suit-label.red .suit-icon { color: var(--red); }
+  .suit-label.black .suit-icon { color: var(--black); }
+  .cards-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .mini-card { width: 40px; height: 54px; border-radius: 6px; border: 1.5px solid #e0d4cc; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-family: 'Playfair Display', serif; font-size: 0.9rem; font-weight: 700; user-select: none; }
+  .mini-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow); }
+  .mini-card.red { color: var(--red); }
+  .mini-card.black { color: var(--black); }
+  .mini-card.disabled { background: var(--card-back); color: var(--disabled-text); border-color: var(--disabled); text-decoration: line-through; opacity: 0.5; transform: none; }
+  .mini-card .mini-suit { font-size: 0.55rem; }
+  .mini-card.active-card { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent), 0 4px 14px rgba(193,127,90,0.3); }
+  .reset-wrap { text-align: center; margin-top: 16px; }
+
+  @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.15); } 100% { transform: scale(1); } }
+  .pop { animation: pop 0.3s ease; }
+  @keyframes pulse-red { 0%, 100% { color: var(--red); } 50% { color: #e87070; } }
+  .timer-display.pulsing { animation: pulse-red 0.6s ease infinite; }
+
+  /* ── POMODORO ──────────────────────────────────────────────────────────── */
+  .pomo-container { max-width: 480px; margin: 0 auto; }
+
+  .pomo-mode-tabs { display: flex; gap: 0; background: var(--surface); border-radius: 14px; padding: 5px; box-shadow: 0 2px 12px var(--shadow); margin-bottom: 20px; }
+  .pomo-mode-btn {
+    flex: 1; padding: 9px 0; border: none; background: transparent;
+    font-family: 'Lato', sans-serif; font-size: 0.82rem; font-weight: 700;
+    color: var(--muted); border-radius: 10px; cursor: pointer; transition: all 0.22s; letter-spacing: 0.3px;
+  }
+  .pomo-mode-btn.active { color: white; }
+  .pomo-mode-btn.work.active  { background: var(--pomo-work); box-shadow: 0 2px 10px rgba(193,127,90,0.35); }
+  .pomo-mode-btn.short.active { background: var(--pomo-short); box-shadow: 0 2px 10px rgba(122,158,135,0.35); }
+  .pomo-mode-btn.long.active  { background: var(--pomo-long); box-shadow: 0 2px 10px rgba(90,127,160,0.35); }
+  .pomo-mode-btn:not(.active):hover { background: #f5ede6; color: var(--text); }
+
+  .pomo-card { background: var(--surface); border-radius: 20px; padding: 28px 24px 24px; text-align: center; box-shadow: 0 4px 24px var(--shadow); margin-bottom: 20px; transition: box-shadow 0.3s; }
+  .pomo-session-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px; font-weight: 700; }
+  .pomo-session-label.work  { color: var(--pomo-work); }
+  .pomo-session-label.short { color: var(--pomo-short); }
+  .pomo-session-label.long  { color: var(--pomo-long); }
+
+  .pomo-timer { font-family: 'Playfair Display', serif; font-size: 5rem; font-weight: 700; letter-spacing: 2px; line-height: 1; margin-bottom: 10px; transition: color 0.3s; color: var(--text); }
+  .pomo-timer.running.work  { color: var(--pomo-work); }
+  .pomo-timer.running.short { color: var(--pomo-short); }
+  .pomo-timer.running.long  { color: var(--pomo-long); }
+  .pomo-timer.pulsing { animation: pulse-red 0.6s ease infinite; }
+
+  .pomo-sublabel { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 18px; }
+
+  .pomo-progress-ring { margin: 0 auto 18px; position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; }
+  .pomo-ring-svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .pomo-ring-bg { fill: none; stroke: #ece5de; stroke-width: 7; }
+  .pomo-ring-fill { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 1s linear, stroke 0.4s; }
+  .pomo-ring-inner { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: var(--text); }
+
+  .pomo-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn-pomo-work  { background: var(--pomo-work);  color: white; box-shadow: 0 3px 12px rgba(193,127,90,0.35); }
+  .btn-pomo-work:hover  { background: #a86d48; }
+  .btn-pomo-short { background: var(--pomo-short); color: white; box-shadow: 0 3px 12px rgba(122,158,135,0.35); }
+  .btn-pomo-short:hover { background: #6a8e75; }
+  .btn-pomo-long  { background: var(--pomo-long);  color: white; box-shadow: 0 3px 12px rgba(90,127,160,0.3); }
+  .btn-pomo-long:hover  { background: #4a6f90; }
+
+  .pomo-settings { background: var(--surface); border-radius: 16px; padding: 18px 18px 14px; box-shadow: 0 2px 12px var(--shadow); margin-bottom: 20px; }
+  .pomo-settings-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 14px; }
+  .pomo-settings-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .pomo-setting { display: flex; flex-direction: column; gap: 5px; }
+  .pomo-setting label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .pomo-setting input {
+    padding: 7px 10px; border-radius: 10px; border: 1.5px solid #d8cec6;
+    font-family: 'Lato', sans-serif; font-size: 0.9rem; background: var(--bg);
+    color: var(--text); outline: none; text-align: center; width: 100%; transition: border-color 0.2s;
+  }
+  .pomo-setting input:focus { border-color: var(--accent); }
+  .pomo-setting .setting-unit { font-size: 0.7rem; color: var(--muted); text-align: center; }
+
+  .pomo-stats { background: var(--surface); border-radius: 16px; padding: 16px 18px; box-shadow: 0 2px 12px var(--shadow); }
+  .pomo-stats-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 12px; }
+  .pomo-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .pomo-stat { text-align: center; padding: 10px 6px; background: var(--bg); border-radius: 12px; }
+  .pomo-stat-num { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: var(--accent); line-height: 1; }
+  .pomo-stat-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-top: 3px; }
+
+  .pomo-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 6px; }
+  .pomo-dot { width: 10px; height: 10px; border-radius: 50%; background: #e0d4cc; transition: background 0.3s; }
+  .pomo-dot.done { background: var(--pomo-work); }
+  .pomo-dot.current { background: var(--pomo-short); }
+
+  /* Modal */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(58,46,40,0.35); backdrop-filter: blur(3px); z-index: 100; align-items: center; justify-content: center; }
+  .modal-backdrop.visible { display: flex; }
+  .modal { background: var(--surface); border-radius: 20px; padding: 28px 28px 24px; max-width: 340px; width: 90%; box-shadow: 0 12px 40px rgba(58,46,40,0.25); animation: slideUp 0.2s ease; }
+  @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 6px; }
+  .modal p { color: var(--muted); font-size: 0.85rem; margin-bottom: 18px; }
+  .modal input { width: 100%; padding: 10px 16px; border-radius: 50px; border: 1.5px solid #d8cec6; font-family: 'Lato', sans-serif; font-size: 0.95rem; background: var(--bg); color: var(--text); outline: none; margin-bottom: 14px; transition: border-color 0.2s; }
+  .modal input:focus { border-color: var(--accent); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 </style>
 </head>
-
 <body>
 
 <h1>Study by the Deck</h1>
-<p class="subtitle">Cards or Pomodoro — choose your focus style</p>
+<p class="subtitle">Draw a card · study for its time · conquer the deck</p>
 
-<!-- TABS -->
-<div class="tab-bar">
-  <div class="tab active" id="deckTab">🃏 Deck Mode</div>
-  <div class="tab" id="pomoTab">🍅 Pomodoro</div>
-</div>
-
-<!-- ================= DECK MODE ================= -->
-<div id="deckMode">
-
-<div class="section">
-<b>👤 Studying Now</b>
-<div id="usersList" style="margin-top:10px"></div>
-<button class="btn btn-ghost" id="addUserBtn">+ Add User</button>
+<!-- TAB NAV -->
+<div class="tabs-nav">
+  <button class="tab-btn active" data-tab="deck">🃏 Card Study</button>
+  <button class="tab-btn" data-tab="pomo">🍅 Pomodoro</button>
 </div>
 
-<!-- MULTIPLIER -->
-<div class="section">
-<b>⏱ Study Multiplier</b>
-<div style="display:flex;gap:10px;margin-top:8px">
-<input type="number" id="multiplierInput" value="10" min="1">
-<button class="btn btn-secondary" id="applyMultiplierBtn">Apply</button>
-</div>
-</div>
+<!-- ══ CARD STUDY TAB ══════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-deck">
 
-<!-- TIMER -->
-<div class="section">
-<div class="timer-display" id="timerDisplay">00:00</div>
-<div style="text-align:center;margin-bottom:10px" id="timerLabel">Draw a card</div>
-<div class="controls">
-<button class="btn btn-primary" id="drawBtn">Draw</button>
-<button class="btn btn-secondary" id="startStopBtn">Start</button>
-<button class="btn btn-ghost" id="resetTimerBtn">Reset</button>
-</div>
-</div>
+  <!-- USER SWITCHER -->
+  <div class="user-section">
+    <div class="user-section-header">
+      <span class="user-section-title">👤 Studying Now</span>
+      <button class="btn btn-ghost btn-sm" id="addUserBtn">+ Add User</button>
+    </div>
+    <div class="users-list" id="usersList"></div>
+  </div>
 
-</div>
+  <!-- MULTIPLIER SELECTOR -->
+  <div class="multiplier-section">
+    <div class="multiplier-header">
+      <span class="multiplier-title">⏱ Time per Card Value</span>
+      <span class="multiplier-value-display" id="multValueDisplay">×10 min</span>
+    </div>
+    <div class="multiplier-row">
+      <div class="multiplier-presets" id="multPresets">
+        <div class="mult-chip active" data-mult="1">×1 min</div>
+        <div class="mult-chip" data-mult="5">×5 min</div>
+        <div class="mult-chip active-default" data-mult="10">×10 min</div>
+        <div class="mult-chip" data-mult="15">×15 min</div>
+        <div class="mult-chip" data-mult="30">×30 min</div>
+      </div>
+      <div class="multiplier-custom">
+        <label for="multCustom">Custom:</label>
+        <input type="number" id="multCustom" min="1" max="120" value="10" placeholder="10">
+      </div>
+    </div>
+    <div class="multiplier-desc" id="multDesc">Ace = 1 min · Number cards = face value · J/Q/K = 10 min · Joker = 120 min</div>
+  </div>
 
-<!-- ================= POMODORO MODE ================= -->
-<div id="pomoMode" class="hidden">
+  <!-- TIMER -->
+  <div class="timer-section">
+    <div class="current-user-banner" id="currentUserBanner">— Select a user —</div>
+    <div class="current-card-display">
+      <div class="drawn-card empty" id="drawnCard">
+        <span>draw</span>
+        <span>a card</span>
+      </div>
+      <div>
+        <div class="timer-display" id="timerDisplay">00:00</div>
+        <div class="timer-label" id="timerLabel">Draw a card to start</div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressBar"></div></div>
+      </div>
+    </div>
+    <div class="timer-controls">
+      <button class="btn btn-primary" id="drawBtn">🃏 Draw Card</button>
+      <button class="btn btn-secondary" id="startStopBtn" disabled>▶ Start</button>
+      <button class="btn btn-ghost" id="resetTimerBtn" disabled>↺ Reset</button>
+    </div>
+  </div>
 
-<div class="section">
-<b>Pomodoro Settings</b>
-<div style="display:flex;gap:10px;margin-top:8px">
-<label>Focus <input type="number" id="focusInput" value="25"></label>
-<label>Break <input type="number" id="breakInput" value="5"></label>
-</div>
-</div>
+  <!-- DECK -->
+  <div class="deck-section">
+    <div class="deck-header">
+      <span class="deck-title">Your Deck</span>
+      <span class="deck-count" id="deckCount">54 cards remaining</span>
+    </div>
+    <div class="suits-container" id="suitsContainer"></div>
+    <div class="reset-wrap">
+      <button class="btn btn-ghost" id="resetDeckBtn">Reset Full Deck</button>
+    </div>
+  </div>
 
-<div class="section">
-<div class="timer-display" id="pomoDisplay">25:00</div>
-<div style="text-align:center;margin-bottom:10px" id="pomoLabel">Focus Time</div>
-<div class="controls">
-<button class="btn btn-primary" id="pomoStart">Start</button>
-<button class="btn btn-ghost" id="pomoReset">Reset</button>
-</div>
-<div style="text-align:center;margin-top:8px">Sessions: <span id="sessionCount">0</span></div>
-</div>
+</div><!-- /tab-deck -->
 
+<!-- ══ POMODORO TAB ═════════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-pomo">
+
+  <div class="pomo-container">
+
+    <!-- Mode Tabs -->
+    <div class="pomo-mode-tabs">
+      <button class="pomo-mode-btn work active" data-mode="work">🍅 Work</button>
+      <button class="pomo-mode-btn short" data-mode="short">☕ Short Break</button>
+      <button class="pomo-mode-btn long" data-mode="long">🌿 Long Break</button>
+    </div>
+
+    <!-- Session dots -->
+    <div class="pomo-dots" id="pomoDots"></div>
+
+    <!-- Timer card -->
+    <div class="pomo-card" id="pomoCard">
+      <div class="pomo-session-label work" id="pomoSessionLabel">Focus Time</div>
+      <div class="pomo-progress-ring" id="pomoRingWrap">
+        <svg class="pomo-ring-svg" viewBox="0 0 160 160">
+          <circle class="pomo-ring-bg" cx="80" cy="80" r="68"/>
+          <circle class="pomo-ring-fill" id="pomoRingFill" cx="80" cy="80" r="68"
+                  stroke="var(--pomo-work)" stroke-dasharray="427.3" stroke-dashoffset="0"/>
+        </svg>
+        <div class="pomo-ring-inner" id="pomoTimerInner">25:00</div>
+      </div>
+      <div class="pomo-sublabel" id="pomoSubLabel">Ready to focus</div>
+      <div class="pomo-controls">
+        <button class="btn btn-pomo-work" id="pomoStartStopBtn">▶ Start</button>
+        <button class="btn btn-ghost" id="pomoResetBtn">↺ Reset</button>
+        <button class="btn btn-ghost btn-sm" id="pomoSkipBtn">⏭ Skip</button>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="pomo-settings">
+      <div class="pomo-settings-title">⚙️ Session Durations</div>
+      <div class="pomo-settings-grid">
+        <div class="pomo-setting">
+          <label>Work</label>
+          <input type="number" id="pomoWorkMin" value="25" min="1" max="120">
+          <div class="setting-unit">minutes</div>
+        </div>
+        <div class="pomo-setting">
+          <label>Short Break</label>
+          <input type="number" id="pomoShortMin" value="5" min="1" max="60">
+          <div class="setting-unit">minutes</div>
+        </div>
+        <div class="pomo-setting">
+          <label>Long Break</label>
+          <input type="number" id="pomoLongMin" value="15" min="1" max="120">
+          <div class="setting-unit">minutes</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div class="pomo-setting" style="flex-direction:row;align-items:center;gap:8px;">
+          <label style="text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--muted);">Long break after</label>
+          <input type="number" id="pomoLongAfter" value="4" min="2" max="10" style="width:52px;">
+          <label style="text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--muted);">sessions</label>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="pomoApplyBtn">Apply</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="pomo-stats">
+      <div class="pomo-stats-title">📊 Today's Stats</div>
+      <div class="pomo-stats-grid">
+        <div class="pomo-stat">
+          <div class="pomo-stat-num" id="statPomos">0</div>
+          <div class="pomo-stat-lbl">Pomodoros</div>
+        </div>
+        <div class="pomo-stat">
+          <div class="pomo-stat-num" id="statFocusMin">0</div>
+          <div class="pomo-stat-lbl">Focus min</div>
+        </div>
+        <div class="pomo-stat">
+          <div class="pomo-stat-num" id="statBreakMin">0</div>
+          <div class="pomo-stat-lbl">Break min</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tab-pomo -->
+
+<!-- ADD USER MODAL -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h2>Add a New User</h2>
+    <p>Each user gets their own independent deck and progress that persists across reloads.</p>
+    <input type="text" id="newUserInput" placeholder="Enter name..." maxlength="24" />
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="modalCancelBtn">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="modalConfirmBtn">Add User</button>
+    </div>
+  </div>
 </div>
 
 <script>
-// ================= TAB SWITCH =================
-const deckMode=document.getElementById("deckMode")
-const pomoMode=document.getElementById("pomoMode")
-document.getElementById("deckTab").onclick=()=>{deckMode.classList.remove("hidden");pomoMode.classList.add("hidden");toggleTabs(0)}
-document.getElementById("pomoTab").onclick=()=>{pomoMode.classList.remove("hidden");deckMode.classList.add("hidden");toggleTabs(1)}
-function toggleTabs(i){
-document.querySelectorAll(".tab").forEach((t,index)=>t.classList.toggle("active",index===i))
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARD STUDY — DATA & STORAGE
+═══════════════════════════════════════════════════════════════════════════ */
+const SUITS = [
+  { name: 'Hearts',   symbol: '♥', color: 'red'   },
+  { name: 'Diamonds', symbol: '♦', color: 'red'   },
+  { name: 'Clubs',    symbol: '♣', color: 'black' },
+  { name: 'Spades',   symbol: '♠', color: 'black' },
+];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const JOKERS = ['Joker-Red', 'Joker-Black'];
+
+function cardValue(rank) {
+  if (rank === 'A') return 1;
+  if (['J','Q','K'].includes(rank)) return 10;
+  return parseInt(rank);
 }
 
-// ================= MULTIPLIER =================
-let STUDY_MULTIPLIER=10
-document.getElementById("applyMultiplierBtn").onclick=()=>{
-const v=parseInt(multiplierInput.value)
-if(v>0)STUDY_MULTIPLIER=v
+let multiplier = 10; // minutes per card-value unit
+
+function studyMinutes(rank) {
+  if (rank === 'Joker') return 120;
+  return cardValue(rank) * multiplier;
+}
+function isJoker(key) { return key === 'Joker-Red' || key === 'Joker-Black'; }
+
+const USERS_META_KEY  = 'studyDeck_users';
+const ACTIVE_USER_KEY = 'studyDeck_activeUser';
+const MULT_KEY        = 'studyDeck_multiplier';
+
+function getStoredMeta()          { try { return JSON.parse(localStorage.getItem(USERS_META_KEY)) || []; } catch(e) { return []; } }
+function saveStoredMeta(meta)     { try { localStorage.setItem(USERS_META_KEY, JSON.stringify(meta)); } catch(e) {} }
+function getStoredUser(id)        { try { return JSON.parse(localStorage.getItem('studyDeck_u_' + id)); } catch(e) { return null; } }
+function saveStoredUser(id, data) { try { localStorage.setItem('studyDeck_u_' + id, JSON.stringify(data)); } catch(e) {} }
+function deleteStoredUser(id)     { try { localStorage.removeItem('studyDeck_u_' + id); } catch(e) {} }
+function getActiveId()            { return localStorage.getItem(ACTIVE_USER_KEY) || null; }
+function setActiveId(id)          { if (id) localStorage.setItem(ACTIVE_USER_KEY, id); else localStorage.removeItem(ACTIVE_USER_KEY); }
+
+function freshDeck() {
+  const d = {};
+  SUITS.forEach(s => RANKS.forEach(r => { d[r + '-' + s.name] = true; }));
+  JOKERS.forEach(j => { d[j] = true; });
+  return d;
 }
 
-// ================= SIMPLE CARD TIMER =================
-let timeLeft=0,totalTime=0,interval=null,running=false
-function format(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+let users        = [];
+let activeUserId = null;
+let deck         = {};
+let currentCard  = null;
+let timerInterval = null;
+let timeLeft = 0, totalTime = 0, timerRunning = false;
 
-function drawCard(){
-const value=Math.floor(Math.random()*13)+1
-const mins=value*STUDY_MULTIPLIER
-totalTime=timeLeft=mins*60
-timerDisplay.textContent=format(timeLeft)
-timerLabel.textContent=value+" × "+STUDY_MULTIPLIER+" = "+mins+" mins"
-}
-drawBtn.onclick=drawCard
+function getActiveUser() { return users.find(u => u.id === activeUserId) || null; }
 
-startStopBtn.onclick=()=>{
-if(!running){
-running=true
-interval=setInterval(()=>{
-timeLeft--
-timerDisplay.textContent=format(timeLeft)
-if(timeLeft<=0){clearInterval(interval);running=false}
-},1000)
-}else{
-running=false
-clearInterval(interval)
-}
+function persist() {
+  const u = getActiveUser();
+  if (!u) return;
+  u.deck = deck;
+  u.currentCard = currentCard;
+  saveStoredUser(u.id, u);
 }
 
-resetTimerBtn.onclick=()=>{clearInterval(interval);running=false;timeLeft=totalTime;timerDisplay.textContent=format(timeLeft)}
+/* ── Multiplier ────────────────────────────────────────────────────────── */
+function setMultiplier(val) {
+  val = Math.max(1, Math.min(120, parseInt(val) || 10));
+  multiplier = val;
+  try { localStorage.setItem(MULT_KEY, val); } catch(e) {}
 
-// ================= POMODORO =================
-let pomoTime=25*60,pomoRunning=false,pomoInterval=null,onBreak=false,sessions=0
+  document.getElementById('multValueDisplay').textContent = '×' + val + ' min';
+  document.getElementById('multCustom').value = val;
 
-function updatePomoDisplay(){
-pomoDisplay.textContent=format(pomoTime)
-pomoLabel.textContent=onBreak?"Break":"Focus Time"
-}
+  const desc = 'Ace = ' + (1*val) + ' min · 2 = ' + (2*val) + ' min … 10 = ' + (10*val) + ' min · J/Q/K = ' + (10*val) + ' min · Joker = 120 min';
+  document.getElementById('multDesc').textContent = desc;
 
-pomoStart.onclick=()=>{
-if(!pomoRunning){
-pomoRunning=true
-pomoInterval=setInterval(()=>{
-pomoTime--
-updatePomoDisplay()
-if(pomoTime<=0){
-clearInterval(pomoInterval)
-pomoRunning=false
-if(!onBreak){sessions++;sessionCount.textContent=sessions}
-onBreak=!onBreak
-pomoTime=(onBreak?breakInput.value:focusInput.value)*60
-updatePomoDisplay()
-}
-},1000)
-}
-}
+  // Highlight preset chips
+  document.querySelectorAll('.mult-chip').forEach(function(c) {
+    c.classList.toggle('active', parseInt(c.dataset.mult) === val);
+  });
 
-pomoReset.onclick=()=>{
-clearInterval(pomoInterval)
-pomoRunning=false
-onBreak=false
-pomoTime=focusInput.value*60
-updatePomoDisplay()
+  // Update current timer display if card is shown
+  if (currentCard) {
+    const mins = studyMinutes(currentCard.rank);
+    totalTime = mins * 60; timeLeft = totalTime;
+    document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+    const lbl = isJoker(currentCard.key)
+      ? currentCard.suit.name + ' Joker · ' + mins + ' minutes'
+      : currentCard.rank + ' of ' + currentCard.suit.name + ' · ' + mins + ' minutes';
+    document.getElementById('timerLabel').textContent = lbl;
+    document.getElementById('progressBar').style.width = '100%';
+    stopTimer(false);
+    document.getElementById('startStopBtn').textContent = '▶ Start';
+  }
+
+  renderDeck();
 }
 
-updatePomoDisplay()
+document.querySelectorAll('.mult-chip').forEach(function(chip) {
+  chip.addEventListener('click', function() {
+    setMultiplier(parseInt(chip.dataset.mult));
+  });
+});
 
-// ================= USERS (simple demo) =================
-let users=["Me"]
-function renderUsers(){
-usersList.innerHTML=""
-users.forEach(u=>{
-const el=document.createElement("div")
-el.textContent=u
-usersList.appendChild(el)
-})
+document.getElementById('multCustom').addEventListener('input', function() {
+  var v = parseInt(this.value);
+  if (!isNaN(v) && v >= 1) setMultiplier(v);
+});
+
+/* ── User management ──────────────────────────────────────────────────── */
+function createUser(name) {
+  const id = 'u' + Date.now() + Math.random().toString(36).slice(2, 5);
+  return { id, name, deck: freshDeck(), currentCard: null };
 }
-renderUsers()
-addUserBtn.onclick=()=>{
-const n=prompt("Name?")
-if(n){users.push(n);renderUsers()}
+
+function addUser(name) {
+  name = name.trim();
+  if (!name) return;
+  const u = createUser(name);
+  users.push(u);
+  saveStoredMeta(users.map(u => ({ id: u.id, name: u.name })));
+  saveStoredUser(u.id, u);
+  switchUser(u.id);
 }
+
+function removeUser(id) {
+  if (users.length <= 1) { alert('You need at least one user.'); return; }
+  const u = users.find(u => u.id === id);
+  if (!confirm('Remove ' + (u ? u.name : 'this user') + '? Their progress will be lost.')) return;
+  deleteStoredUser(id);
+  users = users.filter(u => u.id !== id);
+  saveStoredMeta(users.map(u => ({ id: u.id, name: u.name })));
+  if (activeUserId === id) switchUser(users[0].id);
+  else renderUsers();
+}
+
+function switchUser(id) {
+  persist();
+  stopTimer(false);
+  activeUserId = id;
+  setActiveId(id);
+  const u = users.find(u => u.id === id);
+  if (!u) return;
+  deck        = u.deck        || freshDeck();
+  currentCard = u.currentCard || null;
+  document.getElementById('currentUserBanner').textContent = '📖 ' + u.name + '\'s Session';
+  restoreCardDisplay();
+  renderUsers();
+  renderDeck();
+}
+
+function initials(name) {
+  return name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function renderUsers() {
+  const list = document.getElementById('usersList');
+  list.innerHTML = '';
+  users.forEach(function(u) {
+    const chip = document.createElement('div');
+    chip.className = 'user-chip' + (u.id === activeUserId ? ' active' : '');
+    const av = document.createElement('span');
+    av.className = 'user-avatar'; av.textContent = initials(u.name);
+    const lbl = document.createElement('span'); lbl.textContent = u.name;
+    const del = document.createElement('span');
+    del.className = 'delete-user'; del.title = 'Remove user'; del.textContent = '✕';
+    del.addEventListener('click', function(e) { e.stopPropagation(); removeUser(u.id); });
+    chip.appendChild(av); chip.appendChild(lbl); chip.appendChild(del);
+    chip.addEventListener('click', function() { if (u.id !== activeUserId) switchUser(u.id); });
+    list.appendChild(chip);
+  });
+}
+
+function restoreCardDisplay() {
+  const el = document.getElementById('drawnCard');
+  if (currentCard) {
+    const joker = isJoker(currentCard.key);
+    el.className = 'drawn-card ' + currentCard.suit.color;
+    el.innerHTML = '<span>' + (joker ? '🃏' : currentCard.rank) + '</span><span class="mini-suit">' + (joker ? currentCard.suit.name : currentCard.suit.symbol) + '</span>';
+    const mins = studyMinutes(currentCard.rank);
+    totalTime = mins * 60; timeLeft = totalTime;
+    const lbl = joker ? currentCard.suit.name + ' Joker' : currentCard.rank + ' of ' + currentCard.suit.name;
+    document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+    document.getElementById('timerDisplay').className = 'timer-display';
+    document.getElementById('timerLabel').textContent = lbl + ' · ' + mins + ' minutes';
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('startStopBtn').disabled = false;
+    document.getElementById('startStopBtn').textContent = '▶ Start';
+    document.getElementById('resetTimerBtn').disabled = false;
+  } else {
+    el.className = 'drawn-card empty';
+    el.innerHTML = '<span>draw</span><span>a card</span>';
+    document.getElementById('timerDisplay').textContent = '00:00';
+    document.getElementById('timerDisplay').className = 'timer-display';
+    document.getElementById('timerLabel').textContent = 'Draw a card to start';
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('startStopBtn').disabled = true;
+    document.getElementById('startStopBtn').textContent = '▶ Start';
+    document.getElementById('resetTimerBtn').disabled = true;
+  }
+}
+
+/* ── Deck ─────────────────────────────────────────────────────────────── */
+function availableCards() { return Object.keys(deck).filter(function(k) { return deck[k]; }); }
+
+function formatTime(secs) {
+  return String(Math.floor(secs / 60)).padStart(2,'0') + ':' + String(secs % 60).padStart(2,'0');
+}
+
+function updateDeckCount() {
+  var n = availableCards().length;
+  document.getElementById('deckCount').textContent = n + ' card' + (n !== 1 ? 's' : '') + ' remaining';
+}
+
+function renderDeck() {
+  var container = document.getElementById('suitsContainer');
+  container.innerHTML = '';
+  SUITS.forEach(function(suit) {
+    var row = document.createElement('div'); row.className = 'suit-row';
+    var label = document.createElement('div');
+    label.className = 'suit-label ' + suit.color;
+    label.innerHTML = '<span class="suit-icon">' + suit.symbol + '</span> ' + suit.name;
+    row.appendChild(label);
+    var grid = document.createElement('div'); grid.className = 'cards-grid';
+    RANKS.forEach(function(rank) {
+      var key = rank + '-' + suit.name;
+      var card = document.createElement('div');
+      card.className = 'mini-card ' + suit.color + (!deck[key] ? ' disabled' : '');
+      if (currentCard && currentCard.key === key) card.classList.add('active-card');
+      card.innerHTML = '<span>' + rank + '</span><span class="mini-suit">' + suit.symbol + '</span>';
+      const mins = studyMinutes(rank);
+      card.title = rank + ' of ' + suit.name + ' — ' + mins + ' min';
+      card.addEventListener('click', function() { toggleCard(key); });
+      grid.appendChild(card);
+    });
+    row.appendChild(grid); container.appendChild(row);
+  });
+
+  var jr = document.createElement('div'); jr.className = 'suit-row';
+  var jl = document.createElement('div'); jl.className = 'suit-label black';
+  jl.innerHTML = '<span class="suit-icon">🃏</span> Jokers <span style="margin-left:6px;font-size:0.7rem;color:var(--accent)">(120 min each)</span>';
+  jr.appendChild(jl);
+  var jg = document.createElement('div'); jg.className = 'cards-grid';
+  JOKERS.forEach(function(key) {
+    var isRed = key === 'Joker-Red';
+    var card = document.createElement('div');
+    card.className = 'mini-card ' + (isRed ? 'red' : 'black') + (!deck[key] ? ' disabled' : '');
+    if (currentCard && currentCard.key === key) card.classList.add('active-card');
+    card.innerHTML = '<span>🃏</span><span class="mini-suit" style="font-size:0.6rem">' + (isRed ? 'Red' : 'Blk') + '</span>';
+    card.title = (isRed ? 'Red' : 'Black') + ' Joker — 120 min (2 hrs)';
+    card.addEventListener('click', function() { toggleCard(key); });
+    jg.appendChild(card);
+  });
+  jr.appendChild(jg); container.appendChild(jr);
+  updateDeckCount();
+}
+
+function toggleCard(key) {
+  if (currentCard && currentCard.key === key) return;
+  deck[key] = !deck[key];
+  persist(); renderDeck();
+}
+
+function drawCard() {
+  if (!activeUserId) { alert('Please select or add a user first!'); return; }
+  var avail = availableCards();
+  if (avail.length === 0) { alert('No cards left! Reset the deck to play again.'); return; }
+  stopTimer(false);
+
+  var key = avail[Math.floor(Math.random() * avail.length)];
+  deck[key] = false;
+
+  var rank, suit;
+  if (isJoker(key)) {
+    rank = 'Joker';
+    var isRed = key === 'Joker-Red';
+    suit = { name: isRed ? 'Red' : 'Black', symbol: '🃏', color: isRed ? 'red' : 'black' };
+  } else {
+    var parts = key.split('-');
+    rank = parts[0];
+    var suitName = parts.slice(1).join('-');
+    suit = SUITS.find(function(s) { return s.name === suitName; });
+  }
+  currentCard = { key, rank, suit };
+
+  var el = document.getElementById('drawnCard');
+  el.className = 'drawn-card ' + suit.color;
+  el.innerHTML = '<span>' + (rank === 'Joker' ? '🃏' : rank) + '</span><span class="mini-suit">' + (rank === 'Joker' ? suit.name : suit.symbol) + '</span>';
+  el.classList.add('pop');
+  setTimeout(function() { el.classList.remove('pop'); }, 400);
+
+  var mins = studyMinutes(rank);
+  totalTime = mins * 60; timeLeft = totalTime;
+  var cardLabel = isJoker(key) ? (suit.name + ' Joker') : (rank + ' of ' + suit.name);
+  document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+  document.getElementById('timerDisplay').className = 'timer-display';
+  document.getElementById('timerLabel').textContent = cardLabel + ' · ' + mins + ' minutes';
+  document.getElementById('progressBar').style.width = '100%';
+  document.getElementById('startStopBtn').disabled = false;
+  document.getElementById('startStopBtn').textContent = '▶ Start';
+  document.getElementById('resetTimerBtn').disabled = false;
+
+  persist(); renderDeck();
+}
+
+/* ── Card Timer ────────────────────────────────────────────────────────── */
+function startTimer() {
+  if (timeLeft <= 0) return;
+  timerRunning = true;
+  document.getElementById('startStopBtn').textContent = '⏸ Pause';
+  document.getElementById('timerDisplay').className = 'timer-display running';
+  timerInterval = setInterval(function() {
+    timeLeft--;
+    document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+    document.getElementById('progressBar').style.width = (timeLeft / totalTime * 100) + '%';
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval); timerRunning = false;
+      document.getElementById('timerDisplay').className = 'timer-display pulsing';
+      document.getElementById('timerLabel').textContent = "✅ Time's up! Great work!";
+      document.getElementById('startStopBtn').textContent = '▶ Start';
+      document.getElementById('startStopBtn').disabled = true;
+      playAlarm();
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(timerInterval); timerRunning = false;
+  document.getElementById('startStopBtn').textContent = '▶ Start';
+  document.getElementById('timerDisplay').className = 'timer-display';
+}
+
+function stopTimer(resetDisplay) {
+  if (resetDisplay === undefined) resetDisplay = true;
+  clearInterval(timerInterval); timerRunning = false;
+  if (resetDisplay) {
+    document.getElementById('startStopBtn').textContent = '▶ Start';
+    document.getElementById('timerDisplay').className = 'timer-display';
+  }
+}
+
+function resetTimer() {
+  stopTimer();
+  if (currentCard) {
+    var mins = studyMinutes(currentCard.rank);
+    totalTime = mins * 60; timeLeft = totalTime;
+    document.getElementById('timerDisplay').textContent = formatTime(timeLeft);
+    document.getElementById('timerDisplay').className = 'timer-display';
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('startStopBtn').textContent = '▶ Start';
+    document.getElementById('startStopBtn').disabled = false;
+  }
+}
+
+function playAlarm() {
+  try {
+    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+    var notes = [523,659,784,1047,784,659,523,659,784,1047];
+    var time = ctx.currentTime;
+    notes.forEach(function(freq) {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine'; o.frequency.setValueAtTime(freq, time);
+      g.gain.setValueAtTime(0, time);
+      g.gain.linearRampToValueAtTime(0.4, time + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+      o.start(time); o.stop(time + 0.3); time += 0.22;
+    });
+    for (var r = 0; r < 3; r++) {
+      var o2 = ctx.createOscillator(), g2 = ctx.createGain();
+      o2.connect(g2); g2.connect(ctx.destination);
+      o2.type = 'square'; o2.frequency.value = 440 + r * 80;
+      g2.gain.setValueAtTime(0.15, time);
+      g2.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
+      o2.start(time); o2.stop(time + 0.5); time += 0.55;
+    }
+  } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   POMODORO
+═══════════════════════════════════════════════════════════════════════════ */
+var POMO_CIRCUMFERENCE = 2 * Math.PI * 68; // r=68 → ≈427.26
+
+var pomoSettings = { work: 25, short: 5, long: 15, longAfter: 4 };
+var pomoMode = 'work'; // 'work' | 'short' | 'long'
+var pomoTimeLeft = 0, pomoTotalTime = 0;
+var pomoRunning = false;
+var pomoInterval = null;
+var pomoSessionCount = 0; // completed work sessions this cycle
+var pomoStats = { pomos: 0, focusMin: 0, breakMin: 0 };
+
+var POMO_MODE_META = {
+  work:  { label: 'Focus Time',   sub: 'Stay focused!',       color: 'var(--pomo-work)',  cls: 'work'  },
+  short: { label: 'Short Break',  sub: 'Take a breather ☕',   color: 'var(--pomo-short)', cls: 'short' },
+  long:  { label: 'Long Break',   sub: 'Great job — rest up 🌿', color: 'var(--pomo-long)', cls: 'long'  },
+};
+
+function pomoDuration(mode) {
+  if (mode === 'work')  return pomoSettings.work  * 60;
+  if (mode === 'short') return pomoSettings.short * 60;
+  return pomoSettings.long * 60;
+}
+
+function pomoSetMode(mode, autoStart) {
+  stopPomoTimer();
+  pomoMode = mode;
+  pomoTotalTime = pomoDuration(mode);
+  pomoTimeLeft  = pomoTotalTime;
+
+  var m = POMO_MODE_META[mode];
+  document.getElementById('pomoSessionLabel').textContent = m.label;
+  document.getElementById('pomoSessionLabel').className = 'pomo-session-label ' + m.cls;
+  document.getElementById('pomoSubLabel').textContent = m.sub;
+
+  var ringFill = document.getElementById('pomoRingFill');
+  ringFill.style.stroke = m.color;
+  ringFill.style.strokeDashoffset = '0';
+
+  document.getElementById('pomoTimerInner').textContent = formatTime(pomoTimeLeft);
+  document.getElementById('pomoTimerInner').className = 'pomo-ring-inner';
+
+  var startBtn = document.getElementById('pomoStartStopBtn');
+  startBtn.textContent = '▶ Start';
+  startBtn.className = 'btn btn-pomo-' + m.cls;
+
+  // Sync mode tab highlights
+  document.querySelectorAll('.pomo-mode-btn').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+
+  updatePomoDots();
+  if (autoStart) startPomoTimer();
+}
+
+function startPomoTimer() {
+  if (pomoTimeLeft <= 0) return;
+  pomoRunning = true;
+  var m = POMO_MODE_META[pomoMode];
+  document.getElementById('pomoStartStopBtn').textContent = '⏸ Pause';
+  document.getElementById('pomoTimerInner').className = 'pomo-ring-inner running ' + m.cls;
+
+  pomoInterval = setInterval(function() {
+    pomoTimeLeft--;
+    document.getElementById('pomoTimerInner').textContent = formatTime(pomoTimeLeft);
+
+    // Ring fill — shrinks as time passes
+    var frac = pomoTimeLeft / pomoTotalTime;
+    var offset = POMO_CIRCUMFERENCE * (1 - frac);
+    document.getElementById('pomoRingFill').style.strokeDashoffset = offset;
+
+    if (pomoTimeLeft <= 0) {
+      clearInterval(pomoInterval); pomoRunning = false;
+      onPomoComplete();
+    }
+  }, 1000);
+}
+
+function pausePomoTimer() {
+  clearInterval(pomoInterval); pomoRunning = false;
+  document.getElementById('pomoStartStopBtn').textContent = '▶ Start';
+  document.getElementById('pomoTimerInner').className = 'pomo-ring-inner';
+}
+
+function stopPomoTimer() {
+  clearInterval(pomoInterval); pomoRunning = false;
+  document.getElementById('pomoStartStopBtn').textContent = '▶ Start';
+  document.getElementById('pomoTimerInner').className = 'pomo-ring-inner';
+}
+
+function onPomoComplete() {
+  playAlarm();
+  document.getElementById('pomoTimerInner').className = 'pomo-ring-inner pulsing';
+
+  if (pomoMode === 'work') {
+    pomoStats.pomos++;
+    pomoStats.focusMin += pomoSettings.work;
+    pomoSessionCount++;
+    var nextMode = (pomoSessionCount % pomoSettings.longAfter === 0) ? 'long' : 'short';
+    document.getElementById('pomoSubLabel').textContent = '🎉 Session done! Break time.';
+    setTimeout(function() { pomoSetMode(nextMode, false); }, 1500);
+  } else {
+    pomoStats.breakMin += (pomoMode === 'short' ? pomoSettings.short : pomoSettings.long);
+    document.getElementById('pomoSubLabel').textContent = '⏰ Break over — back to work!';
+    setTimeout(function() { pomoSetMode('work', false); }, 1500);
+  }
+  updatePomoStats();
+}
+
+function updatePomoDots() {
+  var dots = document.getElementById('pomoDots');
+  dots.innerHTML = '';
+  var longAfter = pomoSettings.longAfter;
+  for (var i = 0; i < longAfter; i++) {
+    var dot = document.createElement('div');
+    dot.className = 'pomo-dot';
+    var idx = pomoSessionCount % longAfter;
+    if (i < idx) dot.classList.add('done');
+    else if (i === idx && pomoMode === 'work') dot.classList.add('current');
+    dots.appendChild(dot);
+  }
+}
+
+function updatePomoStats() {
+  document.getElementById('statPomos').textContent = pomoStats.pomos;
+  document.getElementById('statFocusMin').textContent = pomoStats.focusMin;
+  document.getElementById('statBreakMin').textContent = pomoStats.breakMin;
+}
+
+// Pomodoro controls
+document.getElementById('pomoStartStopBtn').addEventListener('click', function() {
+  if (pomoRunning) pausePomoTimer(); else startPomoTimer();
+});
+
+document.getElementById('pomoResetBtn').addEventListener('click', function() {
+  stopPomoTimer();
+  pomoTimeLeft = pomoTotalTime;
+  document.getElementById('pomoTimerInner').textContent = formatTime(pomoTimeLeft);
+  document.getElementById('pomoRingFill').style.strokeDashoffset = '0';
+  document.getElementById('pomoSubLabel').textContent = POMO_MODE_META[pomoMode].sub;
+});
+
+document.getElementById('pomoSkipBtn').addEventListener('click', function() {
+  stopPomoTimer();
+  if (pomoMode === 'work') {
+    var nextMode = ((pomoSessionCount + 1) % pomoSettings.longAfter === 0) ? 'long' : 'short';
+    pomoSetMode(nextMode, false);
+  } else {
+    pomoSetMode('work', false);
+  }
+});
+
+document.querySelectorAll('.pomo-mode-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    pomoSetMode(btn.dataset.mode, false);
+  });
+});
+
+document.getElementById('pomoApplyBtn').addEventListener('click', function() {
+  var w  = parseInt(document.getElementById('pomoWorkMin').value)  || 25;
+  var s  = parseInt(document.getElementById('pomoShortMin').value) || 5;
+  var l  = parseInt(document.getElementById('pomoLongMin').value)  || 15;
+  var la = parseInt(document.getElementById('pomoLongAfter').value) || 4;
+  pomoSettings = { work: Math.max(1,w), short: Math.max(1,s), long: Math.max(1,l), longAfter: Math.max(2,la) };
+  pomoSetMode(pomoMode, false);
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var target = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('tab-' + target).classList.add('active');
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARD STUDY BUTTONS
+═══════════════════════════════════════════════════════════════════════════ */
+document.getElementById('drawBtn').addEventListener('click', drawCard);
+document.getElementById('startStopBtn').addEventListener('click', function() {
+  if (timerRunning) pauseTimer(); else startTimer();
+});
+document.getElementById('resetTimerBtn').addEventListener('click', resetTimer);
+document.getElementById('resetDeckBtn').addEventListener('click', function() {
+  if (!activeUserId) return;
+  var u = getActiveUser();
+  if (!confirm('Reset ' + (u ? u.name + "'s" : 'the') + ' full deck? All 54 cards will be restored.')) return;
+  stopTimer(); currentCard = null; deck = freshDeck(); persist();
+  restoreCardDisplay(); renderDeck();
+});
+
+/* ── Modal ─────────────────────────────────────────────────────────────── */
+var modalBackdrop = document.getElementById('modalBackdrop');
+var newUserInput  = document.getElementById('newUserInput');
+
+document.getElementById('addUserBtn').addEventListener('click', function() {
+  newUserInput.value = '';
+  modalBackdrop.classList.add('visible');
+  setTimeout(function() { newUserInput.focus(); }, 100);
+});
+document.getElementById('modalCancelBtn').addEventListener('click', function() { modalBackdrop.classList.remove('visible'); });
+document.getElementById('modalConfirmBtn').addEventListener('click', function() {
+  var name = newUserInput.value.trim();
+  if (!name) { newUserInput.focus(); return; }
+  addUser(name);
+  modalBackdrop.classList.remove('visible');
+});
+newUserInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter')  document.getElementById('modalConfirmBtn').click();
+  if (e.key === 'Escape') modalBackdrop.classList.remove('visible');
+});
+modalBackdrop.addEventListener('click', function(e) { if (e.target === modalBackdrop) modalBackdrop.classList.remove('visible'); });
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOOTSTRAP
+═══════════════════════════════════════════════════════════════════════════ */
+(function init() {
+  // Restore multiplier
+  var savedMult = parseInt(localStorage.getItem(MULT_KEY));
+  if (!isNaN(savedMult) && savedMult >= 1) multiplier = savedMult;
+  setMultiplier(multiplier);
+
+  // Restore users
+  var meta = getStoredMeta();
+  if (meta.length === 0) {
+    var u = createUser('Me');
+    users = [u];
+    saveStoredMeta([{ id: u.id, name: u.name }]);
+    saveStoredUser(u.id, u);
+    switchUser(u.id);
+  } else {
+    users = meta.map(function(m) {
+      var d = getStoredUser(m.id);
+      return d || { id: m.id, name: m.name, deck: freshDeck(), currentCard: null };
+    });
+    var last = getActiveId();
+    var target = users.find(function(u) { return u.id === last; }) ? last : users[0].id;
+    switchUser(target);
+  }
+
+  // Init Pomodoro
+  pomoSetMode('work', false);
+  updatePomoStats();
+})();
 </script>
-
 </body>
 </html>
