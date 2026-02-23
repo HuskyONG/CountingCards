@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>♠ Card Study Timer</title>
-<!-- Spade favicon embedded as SVG — no external file needed! -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
@@ -678,7 +677,6 @@ function onPomoComplete() {
   if (pomoMode === 'work') {
     pomoStats.pomos++; pomoStats.focusMin += pomoSettings.work;
     pomoSessionCount++;
-    // longAfter=4 means: after sessions 4, 8, 12... take a long break
     var nxt = (pomoSessionCount % pomoSettings.longAfter === 0) ? 'long' : 'short';
     document.getElementById('pomoSubLabel').textContent = nxt === 'long' ? '🎉 Great work! Time for a long break!' : '🎉 Session done! Short break time.';
     setTimeout(function() { pomoSetMode(nxt, false); }, 1500);
@@ -709,7 +707,6 @@ document.getElementById('pomoResetBtn').addEventListener('click', function() { s
 document.getElementById('pomoSkipBtn').addEventListener('click', function() {
   stopPomoTimer();
   if (pomoMode === 'work') {
-    // Increment count as if the session completed, then decide next break
     var nextCount = pomoSessionCount + 1;
     var nxt = (nextCount % pomoSettings.longAfter === 0) ? 'long' : 'short';
     pomoSessionCount = nextCount;
@@ -718,7 +715,6 @@ document.getElementById('pomoSkipBtn').addEventListener('click', function() {
     updatePomoStats();
     pomoSetMode(nxt, false);
   } else {
-    // Skipping a break — just go back to work
     if (pomoMode !== 'work') {
       pomoStats.breakMin += Math.round((pomoTotalTime - pomoTimeLeft) / 60);
       updatePomoStats();
