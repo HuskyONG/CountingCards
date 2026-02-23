@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Counting Cards</title>
+<title>♠ Card Study Timer</title>
 <!-- Spade favicon embedded as SVG — no external file needed! -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♠</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
@@ -228,8 +228,8 @@
 </head>
 <body>
 
-<h1>Study by the Deck</h1>
-<p class="subtitle">Draw a card · Study for its time · Conquer the deck</p>
+<h1>♠ Study by the Deck</h1>
+<p class="subtitle">Draw a card · study for its time · conquer the deck</p>
 
 <!-- TAB NAV -->
 <div class="tabs-nav">
@@ -676,9 +676,11 @@ function stopPomoTimer()  { clearInterval(pomoInterval); pomoRunning = false; do
 function onPomoComplete() {
   playAlarm(); document.getElementById('pomoTimerInner').className = 'pomo-ring-inner pulsing';
   if (pomoMode === 'work') {
-    pomoStats.pomos++; pomoStats.focusMin += pomoSettings.work; pomoSessionCount++;
+    pomoStats.pomos++; pomoStats.focusMin += pomoSettings.work;
+    pomoSessionCount++;
+    // longAfter=4 means: after sessions 4, 8, 12... take a long break
     var nxt = (pomoSessionCount % pomoSettings.longAfter === 0) ? 'long' : 'short';
-    document.getElementById('pomoSubLabel').textContent = '🎉 Session done! Break time.';
+    document.getElementById('pomoSubLabel').textContent = nxt === 'long' ? '🎉 Great work! Time for a long break!' : '🎉 Session done! Short break time.';
     setTimeout(function() { pomoSetMode(nxt, false); }, 1500);
   } else {
     pomoStats.breakMin += (pomoMode === 'short' ? pomoSettings.short : pomoSettings.long);
@@ -704,7 +706,26 @@ function updatePomoStats() {
 
 document.getElementById('pomoStartStopBtn').addEventListener('click', function() { if (pomoRunning) pausePomoTimer(); else startPomoTimer(); });
 document.getElementById('pomoResetBtn').addEventListener('click', function() { stopPomoTimer(); pomoTimeLeft = pomoTotalTime; document.getElementById('pomoTimerInner').textContent = formatTime(pomoTimeLeft); document.getElementById('pomoRingFill').style.strokeDashoffset = '0'; document.getElementById('pomoSubLabel').textContent = POMO_MODE_META[pomoMode].sub; });
-document.getElementById('pomoSkipBtn').addEventListener('click', function() { stopPomoTimer(); if (pomoMode === 'work') { pomoSetMode(((pomoSessionCount+1)%pomoSettings.longAfter===0)?'long':'short', false); } else { pomoSetMode('work', false); } });
+document.getElementById('pomoSkipBtn').addEventListener('click', function() {
+  stopPomoTimer();
+  if (pomoMode === 'work') {
+    // Increment count as if the session completed, then decide next break
+    var nextCount = pomoSessionCount + 1;
+    var nxt = (nextCount % pomoSettings.longAfter === 0) ? 'long' : 'short';
+    pomoSessionCount = nextCount;
+    pomoStats.pomos++;
+    pomoStats.focusMin += Math.round((pomoTotalTime - pomoTimeLeft) / 60);
+    updatePomoStats();
+    pomoSetMode(nxt, false);
+  } else {
+    // Skipping a break — just go back to work
+    if (pomoMode !== 'work') {
+      pomoStats.breakMin += Math.round((pomoTotalTime - pomoTimeLeft) / 60);
+      updatePomoStats();
+    }
+    pomoSetMode('work', false);
+  }
+});
 document.querySelectorAll('.pomo-mode-btn').forEach(function(btn) { btn.addEventListener('click', function() { pomoSetMode(btn.dataset.mode, false); }); });
 document.getElementById('pomoApplyBtn').addEventListener('click', function() {
   var w=parseInt(document.getElementById('pomoWorkMin').value)||25, s=parseInt(document.getElementById('pomoShortMin').value)||5, l=parseInt(document.getElementById('pomoLongMin').value)||15, la=parseInt(document.getElementById('pomoLongAfter').value)||4;
